@@ -7,7 +7,7 @@ Servo servo;
 extern char command[20];
 
 // Cấu hình URL của API server
-const char *serverApiUrl = "http://192.168.100.20:8088/api/v1";
+const char *serverApiUrl = "http://172.20.10.2:8088/api/v1";
 bool flag = false;
 String macAddress; // Biến lưu địa chỉ MAC của thiết bị
 
@@ -15,7 +15,7 @@ void setUp()
 {
   servo.setPeriodHertz(50);
   servo.attach(DOOR_PIN);
-  servo.write(120); // Đảm bảo cửa đóng khi khởi động
+  servo.write(0); // Đảm bảo cửa đóng khi khởi động
   SPI.begin();
   rfid.PCD_Init();
 
@@ -40,12 +40,33 @@ void handleSuccess()
 
   // Chỉ mở cửa nếu lệnh là "DiemDanh"
   if (strcmp(command, "DiemDanh") == 0)
-  {
+{
+    int currentAngle = servo.read();
+    Serial.print("Current servo angle: ");
+    Serial.println(currentAngle);
+    Serial.println("Command DiemDanh received");
     beep(5);
-    servo.write(0);   // Mở cửa
-    delay(5000);      // Giữ cửa mở trong 5 giây
-    servo.write(120); // Đóng cửa lại
-  }
+
+    // Mở cửa
+    servo.write(90);
+    Serial.println("Door opened");
+
+    // In ra góc của servo sau khi mở cửa
+    currentAngle = servo.read();
+    Serial.print("Servo angle after opening: ");
+    Serial.println(currentAngle);
+
+    delay(5000); // Giữ cửa mở trong 5 giây
+
+    // Đóng cửa lại
+    servo.write(130);
+    Serial.println("Door closed");
+
+    // In ra góc của servo sau khi đóng cửa
+    currentAngle = servo.read();
+    Serial.print("Servo angle after closing: ");
+    Serial.println(currentAngle);
+}
 }
 
 // Hàm gửi yêu cầu đến server và kiểm tra phản hồi
@@ -73,12 +94,12 @@ void sendRequestToServer(const char *url, const char *method)
   if (httpResponseCode == 200 || httpResponseCode == 201) // Kiểm tra mã phản hồi HTTP cho thành công
   {
     handleSuccess();
+
   }
   else
   {
     handleError();
   }
-
   http.end();
 }
 

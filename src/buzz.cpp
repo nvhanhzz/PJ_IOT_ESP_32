@@ -1,5 +1,5 @@
 #include "buzz.h"
-void beep(int count)
+void beep(int count)  
 {
     ledcSetup(BUZZ_CHANNEL, 5000, 10);
     ledcAttachPin(BUZZ_PIN, BUZZ_CHANNEL);
