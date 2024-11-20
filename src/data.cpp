@@ -7,7 +7,7 @@ Servo servo;
 extern char command[20];
 
 // Cấu hình URL của API server
-const char *serverApiUrl = "http://172.20.10.2:8088/api/v1";
+const char *serverApiUrl = "http://192.168.100.20:8088/api/v1";
 bool flag = false;
 String macAddress; // Biến lưu địa chỉ MAC của thiết bị
 
@@ -15,7 +15,7 @@ void setUp()
 {
   servo.setPeriodHertz(50);
   servo.attach(DOOR_PIN);
-  servo.write(0); // Đảm bảo cửa đóng khi khởi động
+  servo.write(120); // Đảm bảo cửa đóng khi khởi động
   SPI.begin();
   rfid.PCD_Init();
 
@@ -32,6 +32,7 @@ void handleError()
 }
 
 // Hàm xử lý và hiển thị thông báo thành công lên LCD
+// Hàm xử lý và hiển thị thông báo thành công lên LCD
 void handleSuccess()
 {
   lcd.clear();
@@ -40,33 +41,32 @@ void handleSuccess()
 
   // Chỉ mở cửa nếu lệnh là "DiemDanh"
   if (strcmp(command, "DiemDanh") == 0)
-{
+  {
     int currentAngle = servo.read();
     Serial.print("Current servo angle: ");
     Serial.println(currentAngle);
     Serial.println("Command DiemDanh received");
     beep(5);
 
-    // Mở cửa
-    servo.write(90);
+    // Mở cửa từ góc hiện tại về 0 độ (dần dần)
+    for (int angle = currentAngle; angle >= 0; angle -= 5)
+    {
+      servo.write(angle); // Điều chỉnh góc servo
+      delay(50);          // Thời gian chờ để servo di chuyển
+    }
     Serial.println("Door opened");
 
-    // In ra góc của servo sau khi mở cửa
-    currentAngle = servo.read();
-    Serial.print("Servo angle after opening: ");
-    Serial.println(currentAngle);
+    // Giữ cửa mở trong 5 giây
+    delay(5000);
 
-    delay(5000); // Giữ cửa mở trong 5 giây
-
-    // Đóng cửa lại
-    servo.write(130);
+    // Đóng cửa từ góc hiện tại về 120 độ (dần dần)
+    for (int angle = 0; angle <= 120; angle += 5)
+    {
+      servo.write(angle); // Điều chỉnh góc servo
+      delay(50);          // Thời gian chờ để servo di chuyển
+    }
     Serial.println("Door closed");
-
-    // In ra góc của servo sau khi đóng cửa
-    currentAngle = servo.read();
-    Serial.print("Servo angle after closing: ");
-    Serial.println(currentAngle);
-}
+  }
 }
 
 // Hàm gửi yêu cầu đến server và kiểm tra phản hồi
@@ -94,7 +94,6 @@ void sendRequestToServer(const char *url, const char *method)
   if (httpResponseCode == 200 || httpResponseCode == 201) // Kiểm tra mã phản hồi HTTP cho thành công
   {
     handleSuccess();
-
   }
   else
   {

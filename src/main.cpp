@@ -6,31 +6,37 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 int menu = 0;
 int cnt = 0;
 
-const char *ssid = "Xin thì cho";
-const char *password = "batthoaimai";
+const char *ssid = "NGO LUOC 6G";
+const char *password = "ngonuong";
 
 char command[20];
 extern String macAddress; // Sử dụng biến macAddress đã được khai báo là extern
 
 unsigned long previousMillis = 0; // Lưu thời gian lần cuối gửi tín hiệu heartbeat
-const long interval = 30000; // Khoảng thời gian giữa các lần gửi tín hiệu (60 giây)
+const long interval = 30000;      // Khoảng thời gian giữa các lần gửi tín hiệu (60 giây)
 
-
-void sendHeartbeat() {
-  if (WiFi.status() == WL_CONNECTED) {
+void sendHeartbeat()
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
     HTTPClient http;
-    String url = String("http://172.20.10.2:8088/api/v1/device/heartbeat?codeDevice=") + macAddress;
+    String url = String("http://192.168.100.20:8088/api/v1/device/heartbeat?codeDevice=") + macAddress;
     http.begin(url);
     int httpResponseCode = http.GET();
 
-    if (httpResponseCode > 0) {
+    if (httpResponseCode > 0)
+    {
       Serial.printf("Heartbeat sent, response code: %d, MAC Address: %s\n", httpResponseCode, macAddress.c_str());
-    } else {
+    }
+    else
+    {
       Serial.printf("Error sending heartbeat, response code: %d, MAC Address: %s\n", httpResponseCode, macAddress.c_str());
     }
 
     http.end();
-  } else {
+  }
+  else
+  {
     Serial.println("WiFi not connected");
   }
 }
@@ -75,17 +81,17 @@ void setup()
   sendHeartbeat();
 }
 
-
-
 void loop()
 {
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
+  if (currentMillis - previousMillis >= interval)
+  {
     previousMillis = currentMillis;
     sendHeartbeat(); // Gửi tín hiệu heartbeat mỗi 60 giây
   }
 
-  switch (menu){
+  switch (menu)
+  {
   case 0:
     menu_tong();
     for (int i = 0; i < 100; i++)
